@@ -46,6 +46,9 @@
     <ClInclude Include="src\Input\InputMgr.h">
       <Filter>src\Input</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\ChatMgr.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\Resources\ChatClient.ico">
@@ -67,6 +70,9 @@
     </ClCompile>
     <ClCompile Include="src\Input\InputMgr.cpp">
       <Filter>src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\ChatMgr.cpp">
+      <Filter>src\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

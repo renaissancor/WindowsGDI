@@ -26,7 +26,9 @@ public:
 	void Init(HINSTANCE _Inst, HWND _hWnd, UINT _Width, UINT _Height);
 
 	LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) const;
+
 public:
 	Engine();
 	~Engine();
+	void Progress(); 
 };

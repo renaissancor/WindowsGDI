@@ -32,7 +32,7 @@ void Engine::Init(HINSTANCE _Inst, HWND _hWnd, UINT _Width, UINT _Height)
 
 	m_MainDC = GetDC(m_hMainWnd);
 
-	InputMgr::Get()->Init(m_hMainWnd);
+	InputMgr::Get()->Init(m_hMainWnd, m_Resolution.x, m_Resolution.y);
 	
 	m_Initialized = true;
 }
@@ -44,4 +44,10 @@ LRESULT Engine::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 
 	return InputMgr::Get()->HandleMessage(hWnd, msg, wParam, lParam);
+}
+
+void Engine::Progress()
+{
+	// Update the chat log panel
+	InputMgr::Get()->UpdateLogPanel();
 }

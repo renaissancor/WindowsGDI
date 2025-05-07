@@ -16,7 +16,10 @@ private:
 
 public:
 	~InputMgr(); 
-	void Init(HWND hWnd);
-	void CreateUI();
+	void Init(HWND hWnd, UINT width, UINT height);
+	void CreateUI(UINT _Width, UINT _Height); 
 	LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	void UpdateLogPanel(); 
+
+
 };

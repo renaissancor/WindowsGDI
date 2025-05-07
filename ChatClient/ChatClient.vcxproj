@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClInclude Include="src\App\WinMain.h" />
     <ClInclude Include="src\Common\Singleton.h" />
+    <ClInclude Include="src\Core\ChatMgr.h" />
     <ClInclude Include="src\Core\Engine.h" />
     <ClInclude Include="src\Input\InputMgr.h" />
     <ClInclude Include="src\pch\pch.h" />
@@ -144,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\App\WinMain.cpp" />
+    <ClCompile Include="src\Core\ChatMgr.cpp" />
     <ClCompile Include="src\Core\Engine.cpp" />
     <ClCompile Include="src\Input\InputMgr.cpp" />
     <ClCompile Include="src\pch\pch.cpp">

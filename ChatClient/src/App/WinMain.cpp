@@ -8,9 +8,6 @@
 
 HINSTANCE hInst;                                // Global instance, current instance now 
 
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR    lpCmdLine,
@@ -19,6 +16,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     hInst = hInstance; // <-- This initializes the global instance handle
 
     WNDCLASSEXW wcex = {};
+    wcex.lpszClassName = L"WindowKey";                   // CRUCIAL! Class name used to create the window.  
 
     wcex.cbSize = sizeof(WNDCLASSEX);                    // Size of the structure.
     wcex.style = CS_HREDRAW | CS_VREDRAW;                // Redraw on horizontal/vertical resize.
@@ -30,13 +28,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);       // Default arrow cursor.
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);     // Default window background color.
     wcex.lpszMenuName = MAKEINTRESOURCEW(IDI_CHATCLIENT); // Menu resource name.
-    wcex.lpszClassName = L"WindowKey";                   // Class name used to create the window.
     wcex.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL)); // Small icon for taskbar.
     RegisterClassExW(&wcex);
 
     // Create Window 
+	const UINT window_width = 1080;
+	const UINT window_height = 720;
     HWND hWnd = CreateWindowW(L"WindowKey", L"WindowTitle", WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 1080, 720, nullptr, nullptr, hInstance, nullptr);
+        CW_USEDEFAULT, CW_USEDEFAULT, window_width, window_height, nullptr, nullptr, hInstance, nullptr);
 
     if (!hWnd)
     {
@@ -47,7 +46,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     ShowWindow(hWnd, true);
     UpdateWindow(hWnd);
 
-	Engine::Get()->Init(hInstance, hWnd, 1080, 720); // Initialize the engine with the instance and window handle. 
+	Engine::Get()->Init(hInstance, hWnd, window_width, window_height); // Initialize the engine with the instance and window handle. 
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CHATCLIENT)); // Shortcuts 
 
@@ -67,7 +66,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else
         {
-            //Engine::Get()->Progress();
+            Engine::Get()->Progress();
         }
     }
 
@@ -80,23 +79,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     // return DefWindowProc(hWnd, message, wParam, lParam);
     return Engine::Get()->HandleMessage(hWnd, message, wParam, lParam);
-}
-
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
 }
