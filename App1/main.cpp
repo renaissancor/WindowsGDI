@@ -1,5 +1,4 @@
 #include "stdafx.h"
-
 #include "Console.h"
 #include "Window.h"
 
@@ -16,8 +15,6 @@ public:
 		static Engine instance;
 		return instance;
 	}
-
-
 };
 
 int main() {
