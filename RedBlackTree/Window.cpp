@@ -45,11 +45,13 @@ bool Window::Initialize() noexcept {
 	GetClientRect(_hWindow, &clientRect);
 	int width = clientRect.right - clientRect.left;
 	int height = clientRect.bottom - clientRect.top;
-	_hBackBitmap = CreateCompatibleBitmap(_hMainDC, width, height);
+	_hBackBitmap = CreateCompatibleBitmap(_hMainDC, BITMAP_WIDTH, BITMAP_HEIGHT);	
 	SelectObject(_hBackDC, _hBackBitmap);
 
 	CreateGDIObjects();
 	ShowWindow(_hWindow, SW_SHOW);
+
+	Scroll(((BITMAP_WIDTH - WINDOW_WIDTH) / 2), 0);
 
 	return true;
 }
@@ -146,18 +148,27 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 }
 
 void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexcept {
-	RECT rc = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+	RECT rc = { 0, 0, BITMAP_WIDTH, BITMAP_HEIGHT };
 	FillRect(_hBackDC, &rc, _brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)]);
 
 	if (snapshot.empty()) return;
 
 	std::map<int, POINT> positions;  
 
-	constexpr int NODE_RADIUS = 20;
-	constexpr int LEVEL_HEIGHT = 50;
-	constexpr int ROOT_Y = 40;
+	constexpr int NODE_RADIUS = 16;
+	constexpr int LEVEL_HEIGHT = 48;
+	constexpr int ROOT_Y = 32;
 
-	const int total_nodes = static_cast<const int>(snapshot.size());
+	const int total_nodes = static_cast<const int>(snapshot.size()); 
+
+	auto next_pow_2 = [](int n) -> int {
+		int p = 1;
+		while (p < n) p <<= 1; 
+		return p; 
+	}; 
+
+	int min_width = (total_nodes + 1) * NODE_RADIUS * 3;
+	int tree_width = min(BITMAP_WIDTH, next_pow_2(min_width));
 
 	for (const auto& node : snapshot) {
 		int level = node.level;
@@ -168,8 +179,8 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 			if (n.level == level) ++level_count;
 		}
 
-		int spacing = WINDOW_WIDTH / (level_count + 1);
-		int x = (WINDOW_WIDTH * (idx + 1)) / (total_nodes + 1);
+		int spacing = tree_width / (level_count + 1);
+		int x = (tree_width * (idx + 1)) / (total_nodes + 1);
 		int y = ROOT_Y + level * LEVEL_HEIGHT;
 
 		positions[node.key] = { x, y };
@@ -191,6 +202,14 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 
 	for (const auto& node : snapshot) {
 		POINT pos = positions[node.key];
+		bool color_red = node.is_red; 
+
+		if (node.is_red) {
+			SelectObject(_hBackDC, _brushes[static_cast<size_t>(BRUSH_TYPE::RED)]);
+		}
+		else {
+			SelectObject(_hBackDC, _brushes[static_cast<size_t>(BRUSH_TYPE::GRAY)]);
+		}
 
 		Ellipse(_hBackDC,
 			pos.x - NODE_RADIUS, pos.y - NODE_RADIUS,
@@ -207,21 +226,18 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 	}
 
 	SelectObject(_hBackDC, oldPen);
-	SelectObject(_hBackDC, oldBrush);
+	SelectObject(_hBackDC, oldBrush); 
 }
 
 void Window::Present() const noexcept {
-	RECT clientRect;
-	GetClientRect(_hWindow, &clientRect);
-	int width = clientRect.right - clientRect.left;
-	int height = clientRect.bottom - clientRect.top;
 	BitBlt(
 		_hMainDC,
 		0, 0,
-		width,
-		height,
+		WINDOW_WIDTH,
+		WINDOW_HEIGHT,
 		_hBackDC,
-		0, 0,
+		_scrollX,  
+		_scrollY, 
 		SRCCOPY
 	);
 }

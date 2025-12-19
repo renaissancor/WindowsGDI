@@ -14,19 +14,21 @@ int main() {
 	vector<lot_node<int>> snapshot;
 
 	auto update = [&]() -> void {
-		snapshot = bst.lot_snapshot(); 
+		bst.lot_snapshot(snapshot);
+
 		cout << "STL binary search set : "; 
 		for (auto it = stl_set.begin(); it != stl_set.end(); ++it)
 			cout << *it << ' '; 
 		cout << '\n'; 
 		cout << "My binary search tree : ";
 		for (auto it = bst.begin(); it != bst.end(); ++it)
-			cout << *it << ' ';
-		cout << '\n';
+			cout << *it << ' '; 
+
+		cout << '\n'; 
 	};
 
-	srand(time(NULL)); 
-	constexpr static int MOD = 64; 
+	srand(static_cast<unsigned int>(time(NULL)));
+	constexpr static int MOD = 4096; 
 
 	while (true) {
 		MSG msg;
@@ -47,6 +49,24 @@ int main() {
 					stl_set.erase(val); 
 					update();
 					break; 
+				case 'E':
+				case 'e':
+					for (int i = 0; i < 100; ++i) {
+						val = rand() % MOD;
+						bst.insert(val);
+						stl_set.insert(val);
+					}
+					update();
+					break;
+				case 'R':
+				case 'r':
+					for (int i = 0; i < 100; ++i) {
+						val = rand() % MOD;
+						bst.erase(val);
+						stl_set.erase(val);
+					}
+					update();
+					break;
 				}
 			}
 			TranslateMessage(&msg);

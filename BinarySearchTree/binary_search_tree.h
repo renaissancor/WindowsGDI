@@ -8,8 +8,6 @@
 // Simple Binary Search Tree here. 
 // type T should have operator < == >
 
-
-
 template<typename T> 
 class binary_search_tree {
 private:
@@ -71,7 +69,8 @@ public:
 	binary_search_tree& operator=(const binary_search_tree&) = delete;
 
 public:
-	std::vector<lot_node<T>> lot_snapshot() const; 	
+	void iot_snapshot(const node* curr_node, int level, int &index, std::vector<lot_node<T>>& lot_vector) const; 
+	void lot_snapshot(std::vector<lot_node<T>>& lot_vector) const;
 };
 
 template<typename T>
@@ -202,38 +201,36 @@ void binary_search_tree<T>::clear() noexcept { // Post Order Traversal
 	_size = 0;
 }
 
+template<typename T>
+void binary_search_tree<T>::iot_snapshot(
+	const node* curr_node, int level, int &index, 
+	std::vector<lot_node<T>>& snapshot) const {
+	if (!curr_node) return; 
+
+	iot_snapshot(curr_node->lchild, level + 1, index, snapshot);
+
+	lot_node<T> lot_node_now;
+	lot_node_now.key = curr_node->key;
+	lot_node_now.level = level;
+	lot_node_now.index = index++;  
+	lot_node_now.is_red = true; 
+	lot_node_now.has_lchild = !!(curr_node->lchild);
+	lot_node_now.has_rchild = !!(curr_node->rchild); 
+
+	node* node_parent = curr_node->parent;
+	lot_node_now.has_parent = !!(node_parent);
+	if (node_parent) lot_node_now.key_parent = node_parent->key;
+
+	snapshot.push_back(lot_node_now);
+	iot_snapshot(curr_node->rchild, level + 1, index, snapshot);
+}
 
 template<typename T>
-std::vector<lot_node<T>> binary_search_tree<T>::lot_snapshot() const {
-	std::vector<lot_node<T>> lot_vector; 
-	if (_root == nullptr) return lot_vector; 
-	lot_vector.reserve(_size); 
-	
-	std::queue<const node*> lot; // level order traversal 
-	lot.push(_root); 
-	
-	for (int level_now = 0; !lot.empty(); ++level_now) {
-		const size_t lot_count = lot.size(); 
-		for (size_t lot_cnt = 0; lot_cnt < lot_count; ++lot_cnt) {
-			const node* node_now = lot.front(); lot.pop(); 
-			lot_node<T> lot_node_now; 
-			lot_node_now.key = node_now->key; 
-			lot_node_now.level = level_now; 
-			lot_node_now.index_in_level = static_cast<int>(lot_cnt);
-			lot_node_now.is_red = false; // implement later 
-			lot_node_now.has_lchild = !!(node_now->lchild); 
-			lot_node_now.has_rchild = !!(node_now->rchild); 
-			
-			node* node_parent = node_now->parent; 
-			lot_node_now.has_parent = !!(node_parent); 
-			if (node_parent) lot_node_now.key_parent = node_parent->key; 
+void binary_search_tree<T>::lot_snapshot(std::vector<lot_node<T>> &lot_vector) const {
+	lot_vector.clear();
+	if (_root == nullptr) return;
 
-			lot_vector.push_back(lot_node_now); 
-			if (node_now->lchild) lot.push(node_now->lchild); 
-			if (node_now->rchild) lot.push(node_now->rchild);
-		}
-	}
-
-	return lot_vector;
+	int x_counter = 0;
+	iot_snapshot(_root, 0, x_counter, lot_vector);
 }
 
