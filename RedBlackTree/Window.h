@@ -8,6 +8,7 @@ enum class PEN_TYPE
 	BLACK,
 	WHITE,
 	GRAY,
+	DARKGRAY, 
 	RED,
 	GREEN,
 	BLUE,
@@ -22,6 +23,7 @@ enum class BRUSH_TYPE
 	BLACK,
 	WHITE,
 	GRAY,
+	DARKGRAY,
 	RED,
 	GREEN,
 	BLUE,
@@ -34,11 +36,11 @@ enum class BRUSH_TYPE
 
 class Window {
 private:
-	constexpr static int BITMAP_WIDTH  = 4096; 
-	constexpr static int BITMAP_HEIGHT = 4096;
+	constexpr static int BITMAP_WIDTH  = 2560; 
+	constexpr static int BITMAP_HEIGHT = 1440;
 
-	constexpr static int WINDOW_WIDTH  = 1440;
-	constexpr static int WINDOW_HEIGHT = 960;
+	constexpr static int WINDOW_WIDTH  = 1920;
+	constexpr static int WINDOW_HEIGHT = 1080;
 
 	Window() = default;
 	~Window() = default;
@@ -47,6 +49,9 @@ private:
 private:
 	HINSTANCE _hInstance = nullptr;
 	HWND _hWindow = nullptr;
+	HWND _hBtnInsert = nullptr; 
+	HWND _hBtnErase = nullptr; 
+
 	WNDCLASSEX _wcex = { 0 };
 
 	HDC _hMainDC = nullptr;
@@ -96,6 +101,7 @@ public:
 	void Shutdown() noexcept;
 
 	void RenderTree(const std::vector<lot_node<int>>& snapshot) const noexcept;
+	void RenderUI() const noexcept; 
 	void Present() const noexcept;
 
 	void WMPaintHandler() const noexcept;

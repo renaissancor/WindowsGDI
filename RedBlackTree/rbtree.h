@@ -26,6 +26,7 @@ private:
 	void rotate_left (node* x) noexcept;
 	void rotate_right(node* x) noexcept;
 	void insert_fixup(node* new_node) noexcept;
+	void erase_black_fixup(node* node_this, node* node_parent) noexcept;
 
 public:
 	inline bool empty() const noexcept { return _root == _nil; }
@@ -72,9 +73,32 @@ public:
 	rbtree(const rbtree&) = delete; 
 	rbtree& operator=(const rbtree&) = delete; 
 
+	int check_black_count(node* node_curr, bool& is_valid) const; 
+	int is_black_count_same() const; 
 	void iot_snapshot(const node* curr_node, int level, int& index, std::vector<lot_node<T>>& lot_vector) const;
 	void lot_snapshot(std::vector<lot_node<T>>& lot_vector) const;
 };
+
+template<typename T>
+int rbtree<T> ::is_black_count_same() const {
+	bool is_valid = true;
+	int black_height = check_black_count(_root, is_valid);
+	if (is_valid) return black_height; 
+	else return -1; 
+}
+
+template<typename T>
+int rbtree<T>::check_black_count(node* curr, bool& is_valid) const {
+	if (curr == _nil) return 1;
+
+	int left_bh = check_black_count(curr->lchild, is_valid);
+	int right_bh = check_black_count(curr->rchild, is_valid);
+
+	if (left_bh != right_bh) {
+		is_valid = false;
+	}
+	return (curr->is_red == false) ? left_bh + 1 : left_bh;
+}
 
 template<typename T>
 void rbtree<T>::iot_snapshot(
@@ -145,7 +169,7 @@ void rbtree<T>::insert(const T& key_create) noexcept {
 template<typename T>
 typename rbtree<T>::iterator
 rbtree<T>::iterator::next() noexcept {
-	if (_ptr == nullptr) {
+	if (_ptr == _nil) {
 		return iterator(_nil, _nil);
 	}
 	node* iter_node;
@@ -224,8 +248,12 @@ size_t rbtree<T>::erase(const T& key_erase) noexcept {
 
 	if (target_child != _nil) target_child->parent = target_parent;
 
+	if(target->is_red == false) 
+		erase_black_fixup(target_child, target_parent);
+
 	delete target;
 	--_size;
+
 	return 1;
 }
 
@@ -307,7 +335,7 @@ void rbtree<T>::insert_fixup(node* new_node) noexcept {
 		node* node_uncle = parent_left_uncle_right ? node_grandp->rchild : node_grandp->lchild; 
 
 		if (node_uncle->is_red) { // Uncle is red 
-			if (node_grandp == _nil) break;
+			// if (node_grandp == _nil) break; // ERROR! 
 
 			node_grandp->is_red = true; 
 			node_parent->is_red = false; 
@@ -332,4 +360,65 @@ void rbtree<T>::insert_fixup(node* new_node) noexcept {
 		break; 
 	}
 	_root->is_red = false; 
+}
+
+template<typename T>
+void rbtree<T>::erase_black_fixup(node* node_this, node* node_parent) noexcept {
+	// deleted node was black 
+	for (;;) {
+		if (node_this == _root || (node_this != _nil && node_this->is_red)) break;
+
+		bool me_left_sibiling_right = true;
+		if (node_this == node_parent->rchild) me_left_sibiling_right = false;
+		node* node_sibiling = me_left_sibiling_right ? node_parent->rchild : node_parent->lchild;
+
+		// Case 1: node_sibiling is red, rotate parent to make sibiling black 
+		if (node_sibiling->is_red) {
+			node_sibiling->is_red = false;
+			node_parent->is_red = true;
+			if (me_left_sibiling_right) rotate_left(node_parent);
+			else rotate_right(node_parent);
+			node_sibiling = me_left_sibiling_right ? node_parent->rchild : node_parent->lchild;
+		}
+
+		// Now node_sibiling must be black 
+
+		node* node_lnephew = node_sibiling->lchild;
+		node* node_rnephew = node_sibiling->rchild;
+
+		if (node_lnephew->is_red == false && node_rnephew->is_red == false) {
+			node_sibiling->is_red = true;
+			node_this = node_parent;
+			node_parent = node_this->parent;
+			continue; // End logic here and continue loop 
+		}
+		else if (me_left_sibiling_right == true && node_rnephew->is_red == false) {
+			node_lnephew->is_red = false; 
+			node_sibiling->is_red = true; 
+			rotate_right(node_sibiling);
+			node_sibiling = node_parent->rchild; 
+		}
+		else if (me_left_sibiling_right == false && node_lnephew->is_red == false) {
+			node_rnephew->is_red = false; 
+			node_sibiling->is_red = true; 
+			rotate_left(node_sibiling);
+			node_sibiling = node_parent->lchild; 
+		}
+
+		node_sibiling->is_red = node_parent->is_red; 
+		node_parent->is_red = false; 
+
+		if (me_left_sibiling_right) {
+			node_rnephew = node_sibiling->rchild;
+			node_rnephew->is_red = false; 
+			rotate_left(node_parent); 
+		}
+		else {
+			node_lnephew = node_sibiling->lchild;
+			node_lnephew->is_red = false; 
+			rotate_right(node_parent); 
+		}
+		node_this = _root;
+	}
+	if (node_this != _nil) node_this->is_red = false;
 }

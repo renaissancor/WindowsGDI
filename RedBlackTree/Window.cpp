@@ -48,10 +48,18 @@ bool Window::Initialize() noexcept {
 	_hBackBitmap = CreateCompatibleBitmap(_hMainDC, BITMAP_WIDTH, BITMAP_HEIGHT);	
 	SelectObject(_hBackDC, _hBackBitmap);
 
+	_hBtnInsert = CreateWindowW(L"BUTTON", L"Insert",
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+		130, 100, 70, 25, _hWindow, (HMENU)102, _hInstance, nullptr);
+
+	_hBtnErase = CreateWindowW(L"BUTTON", L"Erase",
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+		210, 100, 70, 25, _hWindow, (HMENU)103, _hInstance, nullptr);
+
 	CreateGDIObjects();
 	ShowWindow(_hWindow, SW_SHOW);
 
-	Scroll(((BITMAP_WIDTH - WINDOW_WIDTH) / 2), 0);
+	// Scroll(((BITMAP_WIDTH - WINDOW_WIDTH) / 2), 0);
 
 	return true;
 }
@@ -60,6 +68,7 @@ void Window::CreateGDIObjects() noexcept {
 	_pens[static_cast<size_t>(PEN_TYPE::BLACK)] = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	_pens[static_cast<size_t>(PEN_TYPE::WHITE)] = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
 	_pens[static_cast<size_t>(PEN_TYPE::GRAY)] = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
+	_pens[static_cast<size_t>(PEN_TYPE::DARKGRAY)] = CreatePen(PS_SOLID, 1, RGB(32, 32, 32));
 	_pens[static_cast<size_t>(PEN_TYPE::RED)] = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 	_pens[static_cast<size_t>(PEN_TYPE::GREEN)] = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
 	_pens[static_cast<size_t>(PEN_TYPE::BLUE)] = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
@@ -70,6 +79,7 @@ void Window::CreateGDIObjects() noexcept {
 	_brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)] = CreateSolidBrush(RGB(0, 0, 0));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::WHITE)] = CreateSolidBrush(RGB(255, 255, 255));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::GRAY)] = CreateSolidBrush(RGB(128, 128, 128));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::DARKGRAY)] = CreateSolidBrush(RGB(32, 32, 32)); 
 	_brushes[static_cast<size_t>(BRUSH_TYPE::RED)] = CreateSolidBrush(RGB(255, 0, 0));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)] = CreateSolidBrush(RGB(0, 255, 0));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::BLUE)] = CreateSolidBrush(RGB(0, 0, 255));
@@ -140,7 +150,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		int xPos = LOWORD(lParam);
 		int yPos = HIWORD(lParam);
 	} break;
-
+	
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	} // End switch (message) 
@@ -149,7 +159,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexcept {
 	RECT rc = { 0, 0, BITMAP_WIDTH, BITMAP_HEIGHT };
-	FillRect(_hBackDC, &rc, _brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)]);
+	FillRect(_hBackDC, &rc, _brushes[static_cast<size_t>(BRUSH_TYPE::DARKGRAY)]);
 
 	if (snapshot.empty()) return;
 
@@ -168,7 +178,7 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 	}; 
 
 	int min_width = (total_nodes + 1) * NODE_RADIUS * 3;
-	int tree_width = min(BITMAP_WIDTH, next_pow_2(min_width));
+	int tree_width = min(WINDOW_WIDTH, next_pow_2(min_width));
 
 	for (const auto& node : snapshot) {
 		int level = node.level;
@@ -208,7 +218,7 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 			SelectObject(_hBackDC, _brushes[static_cast<size_t>(BRUSH_TYPE::RED)]);
 		}
 		else {
-			SelectObject(_hBackDC, _brushes[static_cast<size_t>(BRUSH_TYPE::GRAY)]);
+			SelectObject(_hBackDC, _brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)]);
 		}
 
 		Ellipse(_hBackDC,
@@ -227,6 +237,16 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 
 	SelectObject(_hBackDC, oldPen);
 	SelectObject(_hBackDC, oldBrush); 
+}
+
+void Window::RenderUI() const noexcept {
+	// Placeholder for UI rendering logic
+	SetTextColor(_hBackDC, RGB(255, 255, 255));
+
+	TextOutW(_hBackDC, 50 + _scrollX, 800, L"Q: Insert", 9);
+	TextOutW(_hBackDC, 50 + _scrollX, 825, L"W: Erase ", 9);
+	TextOutW(_hBackDC, 50 + _scrollX, 850, L"E: Insert 20 random", 19);
+	TextOutW(_hBackDC, 50 + _scrollX, 875, L"R: Erase  20 random", 19);
 }
 
 void Window::Present() const noexcept {

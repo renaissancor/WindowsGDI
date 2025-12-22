@@ -2,39 +2,53 @@
 #include "rbtree.h"
 #include "Window.h"
 
-using namespace std;
+using namespace std; 
 
 int main() {
 
 	Window& window = Window::GetInstance();
 	window.Initialize();
 
-	rbtree<int> rbt;
+	rbtree<int> rbt_set;
 	set<int> stl_set;
 	vector<lot_node<int>> snapshot;
 
 	auto update = [&]() -> void {
-		rbt.lot_snapshot(snapshot);
-
-		if (!snapshot.empty()) {
-			int total_nodes = static_cast<int>(snapshot.size());
-			int tree_width = min(4096, (total_nodes + 1) * 16 * 3);  // RenderTree와 동일한 계산
-			int centerX = (tree_width - 1440) / 2;  // WINDOW_WIDTH
-			window.SetScroll(centerX, 0);
+		int black_height = rbt_set.is_black_count_same(); 
+		if (black_height >= 0) {
+			std::cout << "[CHECK] Black Height: " << black_height - 1 << " (All paths consistent)\n";
+		}
+		else {
+			std::cout << "[ALERT] Black Height Mismatch detected!\n";
 		}
 
-		cout << "STL binary search set : ";
-		for (auto it = stl_set.begin(); it != stl_set.end(); ++it)
-			cout << *it << ' ';
-		cout << '\n';
-		cout << "My binary search tree : ";
-		for (auto it = rbt.begin(); it != rbt.end(); ++it)
-			cout << *it << ' ';
-		cout << '\n';
-		};
+		rbt_set.lot_snapshot(snapshot);
+
+		if (stl_set.size() != rbt_set.size()) {
+			cout << "[ERROR] Size mismatch! STL: " << stl_set.size()
+				<< ", RBT: " << rbt_set.size() << endl;
+			__debugbreak(); 
+			return;
+		}
+
+		auto stl_it = stl_set.begin();
+		auto rbt_it = rbt_set.begin();
+
+		while (stl_it != stl_set.end() && rbt_it != rbt_set.end()) {
+			if (*stl_it != *rbt_it) {
+				cout << "[ERROR] Value mismatch! STL: " << *stl_it
+					<< ", RBT: " << *rbt_it << endl;
+				__debugbreak();
+				return;
+			}
+			++stl_it;
+			++rbt_it;
+		}
+		cout << "Verification by Comparison with std::set Success. (Size: " << rbt_set.size() << ")" << endl;
+		}; // end of lambda function update 
 
 	srand(static_cast<unsigned int>(time(NULL)));
-	constexpr static int MOD = 256;
+	constexpr static int MOD = 2048;
 	constexpr int SCROLL_SPEED = 20;
 	while (true) {
 		MSG msg;
@@ -45,30 +59,30 @@ int main() {
 				switch (msg.wParam) {
 				case 'Q':
 				case 'q':
-					rbt.insert(val);
+					rbt_set.insert(val);
 					stl_set.insert(val);
 					update();
 					break;
 				case 'W':
 				case 'w':
-					rbt.erase(val);
+					rbt_set.erase(val);
 					stl_set.erase(val);
 					update();
 					break;
 				case 'E':
 				case 'e':
-					for (int i = 0; i < 100; ++i) {
+					for (int i = 0; i < 20; ++i) {
 						val = rand() % MOD;
-						rbt.insert(val);
+						rbt_set.insert(val);
 						stl_set.insert(val);
 					}
 					update();
 					break;
 				case 'R':
 				case 'r':
-					for (int i = 0; i < 100; ++i) {
+					for (int i = 0; i < 20; ++i) {
 						val = rand() % MOD;
-						rbt.erase(val);
+						rbt_set.erase(val);
 						stl_set.erase(val);
 					}
 					update();
@@ -78,14 +92,13 @@ int main() {
 				case VK_UP:    window.Scroll(0, -SCROLL_SPEED); break;
 				case VK_DOWN:  window.Scroll(0, SCROLL_SPEED); break;
 				}
-
-				
 			}
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 		else {
 			window.RenderTree(snapshot);
+			window.RenderUI(); 
 			window.Present();
 			Sleep(15); // Approximate ~60 FPS 
 		}

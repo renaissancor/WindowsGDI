@@ -51,7 +51,7 @@ int main() {
 					break; 
 				case 'E':
 				case 'e':
-					for (int i = 0; i < 100; ++i) {
+					for (int i = 0; i < 10; ++i) {
 						val = rand() % MOD;
 						bst.insert(val);
 						stl_set.insert(val);
@@ -60,7 +60,7 @@ int main() {
 					break;
 				case 'R':
 				case 'r':
-					for (int i = 0; i < 100; ++i) {
+					for (int i = 0; i < 10; ++i) {
 						val = rand() % MOD;
 						bst.erase(val);
 						stl_set.erase(val);
