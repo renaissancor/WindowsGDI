@@ -8,6 +8,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BinarySearchTree", "BinaryS
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RedBlackTree", "RedBlackTree\RedBlackTree.vcxproj", "{09E7DC4F-6097-4709-8658-E320944E31DC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AStar", "AStar\AStar.vcxproj", "{8BA5050E-6594-4EF4-A396-EFE52DC3922F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -40,6 +42,14 @@ Global
 		{09E7DC4F-6097-4709-8658-E320944E31DC}.Release|x64.Build.0 = Release|x64
 		{09E7DC4F-6097-4709-8658-E320944E31DC}.Release|x86.ActiveCfg = Release|Win32
 		{09E7DC4F-6097-4709-8658-E320944E31DC}.Release|x86.Build.0 = Release|Win32
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Debug|x64.ActiveCfg = Debug|x64
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Debug|x64.Build.0 = Debug|x64
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Debug|x86.ActiveCfg = Debug|Win32
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Debug|x86.Build.0 = Debug|Win32
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Release|x64.ActiveCfg = Release|x64
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Release|x64.Build.0 = Release|x64
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Release|x86.ActiveCfg = Release|Win32
+		{8BA5050E-6594-4EF4-A396-EFE52DC3922F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

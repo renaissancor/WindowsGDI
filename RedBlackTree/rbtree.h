@@ -12,7 +12,7 @@ private:
 		rbtree_node* rchild;
 		T key{};
 		bool is_red = true;
-		rbtree_node() = default;
+		// rbtree_node() = default;
 	};
 	using node = rbtree_node; 
 	

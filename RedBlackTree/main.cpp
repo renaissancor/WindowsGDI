@@ -13,7 +13,7 @@ int main() {
 	set<int> stl_set;
 	vector<lot_node<int>> snapshot;
 
-	auto update = [&]() -> void {
+	auto check_black_count = [&]() -> void {
 		int black_height = rbt_set.is_black_count_same(); 
 		if (black_height >= 0) {
 			std::cout << "[CHECK] Black Height: " << black_height - 1 << " (All paths consistent)\n";
@@ -21,7 +21,9 @@ int main() {
 		else {
 			std::cout << "[ALERT] Black Height Mismatch detected!\n";
 		}
+		}; // end of lambda function check
 
+	auto update = [&]() -> void {
 		rbt_set.lot_snapshot(snapshot);
 
 		if (stl_set.size() != rbt_set.size()) {
@@ -48,7 +50,7 @@ int main() {
 		}; // end of lambda function update 
 
 	srand(static_cast<unsigned int>(time(NULL)));
-	constexpr static int MOD = 2048;
+	constexpr static int MOD = 256;
 	constexpr int SCROLL_SPEED = 20;
 	while (true) {
 		MSG msg;
@@ -61,12 +63,14 @@ int main() {
 				case 'q':
 					rbt_set.insert(val);
 					stl_set.insert(val);
+					check_black_count();
 					update();
 					break;
 				case 'W':
 				case 'w':
 					rbt_set.erase(val);
 					stl_set.erase(val);
+					check_black_count();
 					update();
 					break;
 				case 'E':
@@ -76,6 +80,7 @@ int main() {
 						rbt_set.insert(val);
 						stl_set.insert(val);
 					}
+					check_black_count();
 					update();
 					break;
 				case 'R':
@@ -85,6 +90,7 @@ int main() {
 						rbt_set.erase(val);
 						stl_set.erase(val);
 					}
+					check_black_count();
 					update();
 					break;
 				case VK_LEFT:  window.Scroll(-SCROLL_SPEED, 0); break;
@@ -105,6 +111,31 @@ int main() {
 	}
 
 	window.Shutdown();
+
+	/*
+	rbt_set.clear(); 
+	stl_set.clear(); 
+
+	constexpr static int MOD2 = 100000;
+	
+	for (int cnt = 0; cnt < 10000; ++cnt) {
+		for (int i = 0; i < 10000; ++i) {
+			{
+				int val = rand() * i % MOD2;
+				rbt_set.insert(val);
+				stl_set.insert(val);
+			}
+			{
+				int val = rand() * i % MOD2;
+				rbt_set.erase(val);
+				stl_set.erase(val);
+			}
+		}
+		check_black_count();
+		update();
+	}
+	*/
+	
 
 	return 0;
 }
