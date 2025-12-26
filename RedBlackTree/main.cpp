@@ -4,6 +4,8 @@
 
 using namespace std; 
 
+static std::wstring inputBuffer;
+
 int main() {
 
 	Window& window = Window::GetInstance();
@@ -56,6 +58,14 @@ int main() {
 		MSG msg;
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) break;
+
+			if (msg.message == WM_CHAR) {
+				if (iswdigit((wchar_t)msg.wParam)) {
+					inputBuffer += (wchar_t)msg.wParam;
+					std::wcout << L"\rInput: " << inputBuffer << L"   ";
+				}
+			}
+
 			if (msg.message == WM_KEYDOWN) {
 				int val = rand() % MOD;
 				switch (msg.wParam) {
@@ -97,6 +107,38 @@ int main() {
 				case VK_RIGHT: window.Scroll(SCROLL_SPEED, 0); break;
 				case VK_UP:    window.Scroll(0, -SCROLL_SPEED); break;
 				case VK_DOWN:  window.Scroll(0, SCROLL_SPEED); break;
+				case 'I':
+				case 'i':
+				case VK_RETURN:
+					if (!inputBuffer.empty()) {
+						int val = _wtoi(inputBuffer.c_str());
+						rbt_set.insert(val);
+						stl_set.insert(val);
+						std::cout << "Inserted: " << val << std::endl;
+						inputBuffer.clear();
+						check_black_count();
+						update();
+					}
+					break;
+				case 'D':
+				case 'd':
+					if (!inputBuffer.empty()) {
+						int val = _wtoi(inputBuffer.c_str());
+						rbt_set.erase(val);
+						stl_set.erase(val);
+						std::cout << "Erased: " << val << std::endl;
+						inputBuffer.clear();
+						check_black_count();
+						update();
+					}
+					break;
+				case VK_BACK:
+					if (!inputBuffer.empty()) inputBuffer.pop_back();
+					break; 
+				case VK_ESCAPE:
+					inputBuffer.clear();
+					std::cout << "Input cleared" << std::endl;
+					break;
 				}
 			}
 			TranslateMessage(&msg);
@@ -104,7 +146,7 @@ int main() {
 		}
 		else {
 			window.RenderTree(snapshot);
-			window.RenderUI(); 
+			window.RenderUI(inputBuffer);
 			window.Present();
 			Sleep(15); // Approximate ~60 FPS 
 		}
@@ -112,6 +154,7 @@ int main() {
 
 	window.Shutdown();
 
+	// Benchmark Testing for hours of insertions and deletions 
 	/*
 	rbt_set.clear(); 
 	stl_set.clear(); 

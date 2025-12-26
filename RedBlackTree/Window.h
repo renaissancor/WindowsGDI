@@ -101,7 +101,7 @@ public:
 	void Shutdown() noexcept;
 
 	void RenderTree(const std::vector<lot_node<int>>& snapshot) const noexcept;
-	void RenderUI() const noexcept; 
+	void RenderUI(const std::wstring& inputStr) const noexcept;	
 	void Present() const noexcept;
 
 	void WMPaintHandler() const noexcept;

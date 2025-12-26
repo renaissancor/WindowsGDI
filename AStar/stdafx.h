@@ -24,7 +24,7 @@
 
 // data type 
 
-struct Vec2 {
+struct Pos {
 	int x;
 	int y;
 };

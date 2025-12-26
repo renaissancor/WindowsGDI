@@ -239,14 +239,26 @@ void Window::RenderTree(const std::vector<lot_node<int>>& snapshot) const noexce
 	SelectObject(_hBackDC, oldBrush); 
 }
 
-void Window::RenderUI() const noexcept {
-	// Placeholder for UI rendering logic
-	SetTextColor(_hBackDC, RGB(255, 255, 255));
+// Window.cpp
+void Window::RenderUI(const std::wstring& inputStr) const noexcept {
+	SetBkMode(_hBackDC, TRANSPARENT);
 
-	TextOutW(_hBackDC, 50 + _scrollX, 800, L"Q: Insert", 9);
-	TextOutW(_hBackDC, 50 + _scrollX, 825, L"W: Erase ", 9);
-	TextOutW(_hBackDC, 50 + _scrollX, 850, L"E: Insert 20 random", 19);
-	TextOutW(_hBackDC, 50 + _scrollX, 875, L"R: Erase  20 random", 19);
+	SetTextColor(_hBackDC, RGB(255, 255, 0));
+	std::wstring displayInput = L"INSERT/ERASE VALUE: " + inputStr;
+	TextOutW(_hBackDC, 20 + _scrollX, 820 + _scrollY, displayInput.c_str(), (int)displayInput.length());
+
+	SetTextColor(_hBackDC, RGB(255, 255, 255));
+	int x = 20 + _scrollX;
+	int y = 600 + _scrollY;
+
+	TextOutW(_hBackDC, x, y, L"[Manual Input]", 14);
+	TextOutW(_hBackDC, x, y + 20, L" - Type numbers and press 'I' to Insert", 39);
+	TextOutW(_hBackDC, x, y + 40, L" - Type numbers and press 'D' to Erase", 38);
+	TextOutW(_hBackDC, x, y + 60, L" - Press 'ESC' to Clear Input", 29);
+
+	TextOutW(_hBackDC, x, y + 100, L"[Random Mode]", 13);
+	TextOutW(_hBackDC, x, y + 120, L" - Q: Rand Insert / W: Rand Erase", 33);
+	TextOutW(_hBackDC, x, y + 140, L" - E: Rand Insert 20 / R: Rand Erase 20", 39);
 }
 
 void Window::Present() const noexcept {

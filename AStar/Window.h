@@ -37,15 +37,12 @@ enum class BRUSH_TYPE
 
 class Window {
 private:
-	constexpr static const int GRID_SIZE = 16;
-	constexpr static const int GRID_WIDTH = 100;
-	constexpr static const int GRID_HEIGHT = 50;
-
 	constexpr static int BITMAP_WIDTH = 2560;
 	constexpr static int BITMAP_HEIGHT = 1440;
+	constexpr static int SIDE_BAR_WIDTH = 200;
 
-	constexpr static int WINDOW_WIDTH = 1920;
-	constexpr static int WINDOW_HEIGHT = 1080;
+	int _windowWidth = 1600;
+	int _windowHeight = 900;
 
 	Window() = default;
 	~Window() = default;
@@ -62,15 +59,34 @@ private:
 
 	HPEN _pens[static_cast<size_t>(PEN_TYPE::END)] = { NULL };
 	HBRUSH _brushes[static_cast<size_t>(BRUSH_TYPE::END)] = { NULL };
+
+	int _cameraX = 0;
+	int _cameraY = 0;
+	int _cameraZoom = 16; // pixels per grid cell 
+
 public:
 	inline static Window& GetInstance() noexcept {
 		static Window instance;
 		return instance;
 	}
 
+	inline void MoveCamera(int dx, int dy) noexcept {
+		_cameraX += dx;
+		_cameraY += dy;
+	}
+	POINT ScreenToGrid(const POINT& screenPos) const noexcept {
+		return {
+			(screenPos.x + _cameraX) / _cameraZoom,
+			(screenPos.y + _cameraY) / _cameraZoom
+		};
+	}
+
 	inline HDC GetMainDC() const noexcept { return _hMainDC; }
 	inline HDC GetBackDC() const noexcept { return _hBackDC; }
 	inline HWND GetHWND() const noexcept { return _hWindow; }
+	inline int GetCamX() const noexcept { return _cameraX; }
+	inline int GetCamY() const noexcept { return _cameraY; }
+	inline int GetZoom() const noexcept { return _cameraZoom; }
 
 	inline HPEN GetPen(PEN_TYPE type) const noexcept
 	{
@@ -88,7 +104,7 @@ public:
 	bool Initialize() noexcept;
 	void Shutdown() noexcept;
 
-	void RenderGrid() const noexcept;
+	void Render() const noexcept;
 	void Present() const noexcept;
 
 

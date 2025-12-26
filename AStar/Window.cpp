@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Window.h"
+#include "Grid.h"
 
 // Window.cpp 
 
@@ -25,8 +26,8 @@ bool Window::Initialize() noexcept {
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		GRID_WIDTH * GRID_SIZE + 16,
-		GRID_HEIGHT * GRID_SIZE + 39,
+		_windowWidth,
+		_windowHeight, 
 		nullptr,
 		nullptr,
 		_hInstance,
@@ -145,21 +146,70 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 	return 0;
 }
 
-void Window::RenderGrid() const noexcept {
+void Window::Render() const noexcept {
+	RECT clientRect;
+	GetClientRect(_hWindow, &clientRect);
+	// 배경은 어두운 회색
+	FillRect(_hBackDC, &clientRect, _brushes[static_cast<size_t>(BRUSH_TYPE::DARKGRAY)]);
 
-	RECT rc = { 0, 0, BITMAP_WIDTH, BITMAP_HEIGHT };
-	FillRect(_hBackDC, &rc, _brushes[static_cast<size_t>(BRUSH_TYPE::GRAY)]);
+	const int gWidth = Grid::GRID_WIDTH;
+	const int gHeight = Grid::GRID_HEIGHT;
+	const int gSize = _cameraZoom;
 
+	// 1. 그리드 내부 노드 렌더링
+	for (int x = 0; x < gWidth; ++x) {
+		for (int y = 0; y < gHeight; ++y) {
+			// 카메라 오프셋(_cameraX, _cameraY)을 빼서 렌더링 위치 결정
+			RECT cell = {
+				x * gSize - _cameraX,
+				y * gSize - _cameraY,
+				(x + 1) * gSize - _cameraX,
+				(y + 1) * gSize - _cameraY
+			};
+
+			// 화면 밖에 있는 셀은 그리지 않음 (Culling)
+			if (cell.right < 0 || cell.left > clientRect.right ||
+				cell.bottom < 0 || cell.top > clientRect.bottom) continue;
+
+			if (Grid::wall[x][y]) {
+				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)]);
+			}
+
+			// 시작점/도착점 강조 (예시)
+			Grid::Pos start = Grid::Manager::GetInstance().GetStartPos();
+			Grid::Pos end = Grid::Manager::GetInstance().GetEndPos();
+			if (x == start.x && y == start.y) FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)]);
+			if (x == end.x && y == end.y) FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::RED)]);
+		}
+	}
+
+	// 2. 격자 구분선 그리기
 	HPEN oldPen = (HPEN)SelectObject(_hBackDC, GetPen(PEN_TYPE::BLACK));
-	for (int x = 0; x <= GRID_WIDTH; ++x) {
-		MoveToEx(_hBackDC, x * GRID_SIZE, 0, nullptr);
-		LineTo(_hBackDC, x * GRID_SIZE, GRID_HEIGHT * GRID_SIZE);
+	// 세로선
+	for (int x = 0; x <= gWidth; ++x) {
+		int posX = x * gSize - _cameraX;
+		if (posX < 0 || posX > clientRect.right) continue;
+		MoveToEx(_hBackDC, posX, 0 - _cameraY, nullptr);
+		LineTo(_hBackDC, posX, gHeight * gSize - _cameraY);
 	}
-	for (int y = 0; y <= GRID_HEIGHT; ++y) {
-		MoveToEx(_hBackDC, 0, y * GRID_SIZE, nullptr);
-		LineTo(_hBackDC, GRID_WIDTH * GRID_SIZE, y * GRID_SIZE);
+	// 가로선
+	for (int y = 0; y <= gHeight; ++y) {
+		int posY = y * gSize - _cameraY;
+		if (posY < 0 || posY > clientRect.bottom) continue;
+		MoveToEx(_hBackDC, 0 - _cameraX, posY, nullptr);
+		LineTo(_hBackDC, gWidth * gSize - _cameraX, posY);
 	}
+
+	WCHAR buf[128];
+	swprintf_s(buf, L"Cam: (%d, %d) | Start: (%d, %d) | End: (%d, %d)",
+		_cameraX, _cameraY, _cameraX, _cameraY, _cameraX, _cameraY);
+	SetBkMode(_hBackDC, TRANSPARENT); 
+	SetTextColor(_hBackDC, RGB(255, 255, 255)); 
+	TextOutW(_hBackDC, 10, 10, buf, (int)wcslen(buf));
+
+	SelectObject(_hBackDC, oldPen);
 }
+
 
 void Window::Present() const noexcept {
 	RECT clientRect;
