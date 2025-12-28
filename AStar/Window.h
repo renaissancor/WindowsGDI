@@ -87,6 +87,8 @@ public:
 	inline int GetCamX() const noexcept { return _cameraX; }
 	inline int GetCamY() const noexcept { return _cameraY; }
 	inline int GetZoom() const noexcept { return _cameraZoom; }
+	inline void ZoomIn() noexcept { if (_cameraZoom < 64) _cameraZoom += 4; }
+	inline void ZoomOut() noexcept { if (_cameraZoom > 8) _cameraZoom -= 4; }
 
 	inline HPEN GetPen(PEN_TYPE type) const noexcept
 	{

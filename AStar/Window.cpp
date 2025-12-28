@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Window.h"
-#include "Grid.h"
+#include "Level.h"
 
 // Window.cpp 
 
@@ -152,8 +152,8 @@ void Window::Render() const noexcept {
 	// 배경은 어두운 회색
 	FillRect(_hBackDC, &clientRect, _brushes[static_cast<size_t>(BRUSH_TYPE::DARKGRAY)]);
 
-	const int gWidth = Grid::GRID_WIDTH;
-	const int gHeight = Grid::GRID_HEIGHT;
+	const int gWidth = Level::GRID_WIDTH;
+	const int gHeight = Level::GRID_HEIGHT;
 	const int gSize = _cameraZoom;
 
 	// 1. 그리드 내부 노드 렌더링
@@ -171,13 +171,13 @@ void Window::Render() const noexcept {
 			if (cell.right < 0 || cell.left > clientRect.right ||
 				cell.bottom < 0 || cell.top > clientRect.bottom) continue;
 
-			if (Grid::wall[x][y]) {
+			if (Level::wall[x][y]) {
 				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)]);
 			}
 
 			// 시작점/도착점 강조 (예시)
-			Grid::Pos start = Grid::Manager::GetInstance().GetStartPos();
-			Grid::Pos end = Grid::Manager::GetInstance().GetEndPos();
+			Level::Pos start = Level::Manager::GetInstance().GetStartPos();
+			Level::Pos end = Level::Manager::GetInstance().GetEndPos();
 			if (x == start.x && y == start.y) FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)]);
 			if (x == end.x && y == end.y) FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::RED)]);
 		}

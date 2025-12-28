@@ -21,7 +21,7 @@
     <ClInclude Include="Window.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Grid.h">
+    <ClInclude Include="Level.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Input.h">
@@ -38,8 +38,11 @@
     <ClCompile Include="Input.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Grid.cpp">
+    <ClCompile Include="Level.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

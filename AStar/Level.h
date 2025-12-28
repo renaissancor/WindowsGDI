@@ -1,14 +1,20 @@
 #pragma once
 
-// Grid.h 
+// Level.h 
 
-// namespace Grid later 
-
-namespace Grid {
+namespace Level {
 
 	constexpr static const int NODE_SIZE = 16;
 	constexpr static const int GRID_WIDTH = 80;  // 1280 / 16 = 80
 	constexpr static const int GRID_HEIGHT = 48; // 768 / 16 = 48 
+
+	enum class State {
+		DRAW_WALL, 
+		SET_POINTS, 
+		RUN_ASTAR, 
+		SHOW_RESULT, 
+		END,
+	};
 
 	extern bool wall[GRID_WIDTH][GRID_HEIGHT]; 
 
@@ -40,20 +46,37 @@ namespace Grid {
 		Manager(const Manager&) = delete;
 		Manager& operator=(const Manager&) = delete;
 	private:
+
+		State _state = State::DRAW_WALL; 
+		bool _setStart = false;
+		bool _setEnd = false; 
+
 		Pos _startPos = { 0, 0 }; 
-		Pos _endPos = { 10, 10 }; 
+		Pos _endPos = { 1, 1 }; 
 
 		std::vector<Node*> _opened; 
 		
-		Node* _nodeMap[GRID_WIDTH][GRID_HEIGHT] = { nullptr }; 
+		Node* _grid[GRID_WIDTH][GRID_HEIGHT] = { nullptr }; 
+		bool _closed[GRID_WIDTH][GRID_HEIGHT] = { false }; 
 
 	public:
 		inline static Manager& GetInstance() noexcept {
 			static Manager instance;
 			return instance;
 		}
-		inline void SetStartPos(const Pos& pos) noexcept { _startPos = pos; }
-		inline void SetEndPos(const Pos& pos) noexcept { _endPos = pos; }
+		State GetState() const noexcept { return _state; } 
+
+		const Node* GetNode(int x, int y) const noexcept {
+			if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) return nullptr;
+			return _grid[x][y];
+		}
+		bool IsClosed(int x, int y) const noexcept {
+			if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) return true; // false;
+			return _closed[x][y];
+		}
+
+		inline void SetStartPos(const Pos& pos) noexcept { _startPos = pos; _setStart = true; }
+		inline void SetEndPos(const Pos& pos) noexcept { _endPos = pos; _setEnd = true; }
 		inline const Pos& GetStartPos() const noexcept { return _startPos; }
 		inline const Pos& GetEndPos() const noexcept { return _endPos; } 
 
@@ -65,7 +88,12 @@ namespace Grid {
 		}
 
 		void Clear() noexcept; 
-		void StepAStar() noexcept; 
+		void Start() noexcept; 
+		void Step() noexcept; 
+		void RunAStar() noexcept; 
+
+		void NextState() noexcept;
+		void PrevState() noexcept;
 
 	};
 
