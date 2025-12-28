@@ -38,7 +38,7 @@ int main() {
         input.Update();
         if (input.GetKeyState(Input::ESCAPE) == Input::TAPP) break;
 
-        int camSpeed = 10;
+        int camSpeed = 20;
         if (input.GetKeyState(Input::LEFT) == Input::HOLD) window.MoveCamera(-camSpeed, 0);
         if (input.GetKeyState(Input::RIGHT) == Input::HOLD) window.MoveCamera(camSpeed, 0);
         if (input.GetKeyState(Input::UP) == Input::HOLD) window.MoveCamera(0, -camSpeed);
@@ -97,7 +97,7 @@ int main() {
             break;
 
         case Level::State::RUN_ASTAR:
-            if (input.GetKeyState(Input::SPACE) == Input::TAPP) {
+            if (input.GetKeyState(Input::SPACE) == Input::HOLD) {
                 level.Step();
             }
             break;

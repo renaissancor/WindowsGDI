@@ -51,8 +51,8 @@ namespace Level {
 		bool _setStart = false;
 		bool _setEnd = false; 
 
-		Pos _startPos = { 0, 0 }; 
-		Pos _endPos = { 1, 1 }; 
+		Pos _startPos = { -1, -1 }; 
+		Pos _endPos = { -1, -1 };
 
 		std::vector<Node*> _opened; 
 		

@@ -57,24 +57,24 @@ void Window::CreateGDIObjects() noexcept {
 	_pens[static_cast<size_t>(PEN_TYPE::GRAY)] = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
 	_pens[static_cast<size_t>(PEN_TYPE::LIGHTGRAY)] = CreatePen(PS_SOLID, 1, RGB(192, 192, 192));
 	_pens[static_cast<size_t>(PEN_TYPE::DARKGRAY)] = CreatePen(PS_SOLID, 1, RGB(64, 64, 64));
-	_pens[static_cast<size_t>(PEN_TYPE::RED)] = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
-	_pens[static_cast<size_t>(PEN_TYPE::GREEN)] = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
-	_pens[static_cast<size_t>(PEN_TYPE::BLUE)] = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
-	_pens[static_cast<size_t>(PEN_TYPE::CYAN)] = CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
-	_pens[static_cast<size_t>(PEN_TYPE::MAGENTA)] = CreatePen(PS_SOLID, 1, RGB(255, 0, 255));
-	_pens[static_cast<size_t>(PEN_TYPE::YELLOW)] = CreatePen(PS_SOLID, 1, RGB(255, 255, 0));
+	_pens[static_cast<size_t>(PEN_TYPE::RED)] = CreatePen(PS_SOLID, 1, RGB(192, 0, 0));
+	_pens[static_cast<size_t>(PEN_TYPE::GREEN)] = CreatePen(PS_SOLID, 1, RGB(0, 192, 0));
+	_pens[static_cast<size_t>(PEN_TYPE::BLUE)] = CreatePen(PS_SOLID, 1, RGB(0, 0, 192));
+	_pens[static_cast<size_t>(PEN_TYPE::CYAN)] = CreatePen(PS_SOLID, 1, RGB(0, 128, 128));
+	_pens[static_cast<size_t>(PEN_TYPE::MAGENTA)] = CreatePen(PS_SOLID, 1, RGB(128, 0, 128));
+	_pens[static_cast<size_t>(PEN_TYPE::YELLOW)] = CreatePen(PS_SOLID, 1, RGB(128, 128, 0));
 
 	_brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)] = CreateSolidBrush(RGB(0, 0, 0));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::WHITE)] = CreateSolidBrush(RGB(255, 255, 255));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::GRAY)] = CreateSolidBrush(RGB(128, 128, 128));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::LIGHTGRAY)] = CreateSolidBrush(RGB(192, 192, 192));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::DARKGRAY)] = CreateSolidBrush(RGB(64, 64, 64));
-	_brushes[static_cast<size_t>(BRUSH_TYPE::RED)] = CreateSolidBrush(RGB(255, 0, 0));
-	_brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)] = CreateSolidBrush(RGB(0, 255, 0));
-	_brushes[static_cast<size_t>(BRUSH_TYPE::BLUE)] = CreateSolidBrush(RGB(0, 0, 255));
-	_brushes[static_cast<size_t>(BRUSH_TYPE::CYAN)] = CreateSolidBrush(RGB(0, 255, 255));
-	_brushes[static_cast<size_t>(BRUSH_TYPE::MAGENTA)] = CreateSolidBrush(RGB(255, 0, 255));
-	_brushes[static_cast<size_t>(BRUSH_TYPE::YELLOW)] = CreateSolidBrush(RGB(255, 255, 0));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::RED)] = CreateSolidBrush(RGB(192, 0, 0));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)] = CreateSolidBrush(RGB(0, 192, 0));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::BLUE)] = CreateSolidBrush(RGB(0, 0, 192));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::CYAN)] = CreateSolidBrush(RGB(0, 128, 128));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::MAGENTA)] = CreateSolidBrush(RGB(128, 0, 128));
+	_brushes[static_cast<size_t>(BRUSH_TYPE::YELLOW)] = CreateSolidBrush(RGB(128, 128, 0));
 	_brushes[static_cast<size_t>(BRUSH_TYPE::HOLLOW)] = (HBRUSH)GetStockObject(HOLLOW_BRUSH);
 }
 
@@ -149,17 +149,18 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 void Window::Render() const noexcept {
 	RECT clientRect;
 	GetClientRect(_hWindow, &clientRect);
-	// 배경은 어두운 회색
 	FillRect(_hBackDC, &clientRect, _brushes[static_cast<size_t>(BRUSH_TYPE::DARKGRAY)]);
 
 	const int gWidth = Level::GRID_WIDTH;
 	const int gHeight = Level::GRID_HEIGHT;
 	const int gSize = _cameraZoom;
+	Level::Manager& level = Level::Manager::GetInstance();  // 루프 밖에서 한 번만
+	Level::Pos start = level.GetStartPos();
+	Level::Pos end = level.GetEndPos();
 
 	// 1. 그리드 내부 노드 렌더링
 	for (int x = 0; x < gWidth; ++x) {
 		for (int y = 0; y < gHeight; ++y) {
-			// 카메라 오프셋(_cameraX, _cameraY)을 빼서 렌더링 위치 결정
 			RECT cell = {
 				x * gSize - _cameraX,
 				y * gSize - _cameraY,
@@ -167,32 +168,53 @@ void Window::Render() const noexcept {
 				(y + 1) * gSize - _cameraY
 			};
 
-			// 화면 밖에 있는 셀은 그리지 않음 (Culling)
 			if (cell.right < 0 || cell.left > clientRect.right ||
 				cell.bottom < 0 || cell.top > clientRect.bottom) continue;
 
+			// 벽
 			if (Level::wall[x][y]) {
 				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::BLACK)]);
 			}
+			// Closed 노드
+			else if (level.IsClosed(x, y)) {
+				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::BLUE)]);
+			}
+			// Open 노드
+			else if (level.GetNode(x, y) != nullptr) {
+				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::MAGENTA)]);
+			}
 
-			// 시작점/도착점 강조 (예시)
-			Level::Pos start = Level::Manager::GetInstance().GetStartPos();
-			Level::Pos end = Level::Manager::GetInstance().GetEndPos();
-			if (x == start.x && y == start.y) FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)]);
-			if (x == end.x && y == end.y) FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::RED)]);
+			// 시작점/도착점 (항상 위에)
+			if (x == start.x && y == start.y)
+				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::GREEN)]);
+			if (x == end.x && y == end.y)
+				FillRect(_hBackDC, &cell, _brushes[static_cast<size_t>(BRUSH_TYPE::RED)]);
+
+			// f, g, h 표시 (확대 시)
+			if (gSize >= 48) {
+				const Level::Node* node = level.GetNode(x, y);
+				if (node != nullptr) {
+					SetTextColor(_hBackDC, RGB(96, 96, 0)); // Dark Yellow 
+					WCHAR buf[16];
+					swprintf_s(buf, L"g:%.1f", node->g);
+					TextOutW(_hBackDC, cell.left + 2, cell.top + 2, buf, (int)wcslen(buf));
+					swprintf_s(buf, L"h:%.1f", node->h);
+					TextOutW(_hBackDC, cell.left + 2, cell.top + 16, buf, (int)wcslen(buf));
+					swprintf_s(buf, L"f:%.1f", node->f);
+					TextOutW(_hBackDC, cell.left + 2, cell.top + 30, buf, (int)wcslen(buf));
+				}
+			}
 		}
 	}
 
-	// 2. 격자 구분선 그리기
+	// 2. Grid Lines Rendering 
 	HPEN oldPen = (HPEN)SelectObject(_hBackDC, GetPen(PEN_TYPE::BLACK));
-	// 세로선
 	for (int x = 0; x <= gWidth; ++x) {
 		int posX = x * gSize - _cameraX;
 		if (posX < 0 || posX > clientRect.right) continue;
 		MoveToEx(_hBackDC, posX, 0 - _cameraY, nullptr);
 		LineTo(_hBackDC, posX, gHeight * gSize - _cameraY);
 	}
-	// 가로선
 	for (int y = 0; y <= gHeight; ++y) {
 		int posY = y * gSize - _cameraY;
 		if (posY < 0 || posY > clientRect.bottom) continue;
@@ -200,12 +222,59 @@ void Window::Render() const noexcept {
 		LineTo(_hBackDC, gWidth * gSize - _cameraX, posY);
 	}
 
+	// 3. Path Rendering by line 
+
+	for (int i = 0; i < gWidth * gHeight; ++i) {
+		const Level::Node* node = level.GetNode(i % gWidth, i / gWidth);
+		if (node == nullptr) continue;
+		if (node->parent.x == -1 && node->parent.y == -1) continue;
+		int x1 = node->pos.x * gSize + gSize / 2 - _cameraX;
+		int y1 = node->pos.y * gSize + gSize / 2 - _cameraY;
+		int x2 = node->parent.x * gSize + gSize / 2 - _cameraX;
+		int y2 = node->parent.y * gSize + gSize / 2 - _cameraY;
+		MoveToEx(_hBackDC, x1, y1, nullptr);
+		LineTo(_hBackDC, x2, y2);
+	}
+
+	// 4. final Path Rendering if game ended 
+	if (level.GetState() == Level::State::SHOW_RESULT) {
+		SelectObject(_hBackDC, GetPen(PEN_TYPE::WHITE)); 
+		Level::Pos currPos = end;
+		while (true) {
+			const Level::Node* currNode = level.GetNode(currPos.x, currPos.y);
+			if (currNode == nullptr) break;
+			if (currNode->parent.x == -1 && currNode->parent.y == -1) break;
+			int x1 = currNode->pos.x * gSize + gSize / 2 - _cameraX;
+			int y1 = currNode->pos.y * gSize + gSize / 2 - _cameraY;
+			int x2 = currNode->parent.x * gSize + gSize / 2 - _cameraX;
+			int y2 = currNode->parent.y * gSize + gSize / 2 - _cameraY;
+			MoveToEx(_hBackDC, x1, y1, nullptr);
+			LineTo(_hBackDC, x2, y2);
+			currPos = currNode->parent;
+		}
+		SelectObject(_hBackDC, GetPen(PEN_TYPE::BLACK));
+	}
+	
+	
+
+	// 5. UI Text 
+	SetBkMode(_hBackDC, TRANSPARENT);
+	SetTextColor(_hBackDC, RGB(255, 255, 255));
+
 	WCHAR buf[128];
-	swprintf_s(buf, L"Cam: (%d, %d) | Start: (%d, %d) | End: (%d, %d)",
-		_cameraX, _cameraY, _cameraX, _cameraY, _cameraX, _cameraY);
-	SetBkMode(_hBackDC, TRANSPARENT); 
-	SetTextColor(_hBackDC, RGB(255, 255, 255)); 
+	swprintf_s(buf, L"Zoom: %d | Start: (%d, %d) | End: (%d, %d)",
+		gSize, start.x, start.y, end.x, end.y);
 	TextOutW(_hBackDC, 10, 10, buf, (int)wcslen(buf));
+
+	const wchar_t* stateText[] = {
+		L"[1/4] DRAW WALL - LClick:Wall, RClick:Erase, Enter:Next",
+		L"[2/4] SET POINTS - LClick:Start, RClick:End, Enter:Next",
+		L"[3/4] RUN A* - Space:Step, Backspace:Back",
+		L"[4/4] RESULT - Backspace:Back"
+	};
+	Level::State currState = level.GetState();
+	TextOutW(_hBackDC, 10, 30, stateText[static_cast<size_t>(currState)],
+		(int)wcslen(stateText[static_cast<size_t>(currState)]));
 
 	SelectObject(_hBackDC, oldPen);
 }

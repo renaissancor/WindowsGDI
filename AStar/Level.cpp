@@ -45,7 +45,15 @@ void Level::Manager::Step() noexcept {
     }
 
     auto it = std::min_element(_opened.begin(), _opened.end(),
-        [](Node* a, Node* b) { return a->f < b->f; });
+        [](const Node* a, const Node* b) { 
+            if (a->f == b->f) {
+                if (a->h == b->h) {
+                    return a->g < b->g;
+				}
+				return a->h < b->h; 
+            }
+            return a->f < b->f; 
+        });
 
     Node* curr = *it;
 
